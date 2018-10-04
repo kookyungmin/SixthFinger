@@ -1,0 +1,2 @@
+NAME=SixthFinger
+PIN=1234

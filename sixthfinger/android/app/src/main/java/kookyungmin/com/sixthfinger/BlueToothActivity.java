@@ -134,6 +134,7 @@ public class BlueToothActivity extends Activity implements  AdapterView.OnItemCl
                     Toast.makeText(BlueToothActivity.this, "장치와 페어링 시도하겠습니다.", Toast.LENGTH_SHORT).show();
                 }catch(Exception e){
                     e.printStackTrace();
+                    finish();
                 }
             }
         });
@@ -203,13 +204,15 @@ public class BlueToothActivity extends Activity implements  AdapterView.OnItemCl
         int pos = strItem.indexOf("-");
         if(pos <= 0 ) return;
         String name = strItem.substring(0, pos);
-        Toast.makeText(BlueToothActivity.this, name + "선택", Toast.LENGTH_SHORT).show();
         stopFindDevice();
         if(name.equals("SixthFinger")){
             BluetoothDevice selectedDevice = getDeviceFromBondedList(name);
             Intent intent = new Intent(this, WifiActivity.class);
             intent.putExtra("selectedDevice", selectedDevice);
             startActivity(intent);
+            finish();
+        }else{
+            Toast.makeText(BlueToothActivity.this, "SixthFinger를 선택해주세요", Toast.LENGTH_SHORT).show();
         }
     }
     public BluetoothDevice getDeviceFromBondedList(String name){
@@ -233,26 +236,12 @@ public class BlueToothActivity extends Activity implements  AdapterView.OnItemCl
                 }
                 ActivityCompat.requestPermissions(this ,new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
                 return;
-            }else{
-
             }
-        }else{
-
         }
     }
     @Override
     protected void onDestroy(){
+        stopFindDevice();
         super.onDestroy();
-        stopFindDevice();
-    }
-    @Override
-    protected void onStop(){
-        super.onStop();
-        stopFindDevice();
-    }
-    @Override
-    protected  void onPause(){
-        super.onPause();
-        stopFindDevice();
     }
 }

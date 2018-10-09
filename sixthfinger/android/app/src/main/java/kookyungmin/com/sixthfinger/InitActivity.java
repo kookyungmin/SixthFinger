@@ -14,11 +14,21 @@ public class InitActivity extends Activity {
         setContentView(R.layout.activity_init);
 
         Button wifiButton = (Button)findViewById(R.id.wifiButton);
+        Button lightButton = (Button)findViewById(R.id.lightButton);
 
         wifiButton.setOnClickListener(
                 new Button.OnClickListener(){
                     public void onClick(View v){
                         Intent intent = new Intent(v.getContext(), BlueToothActivity.class);
+                        startActivity(intent);
+                    }
+                }
+        );
+
+        lightButton.setOnClickListener(
+                new Button.OnClickListener(){
+                    public void onClick(View v){
+                        Intent intent = new Intent(v.getContext(), SwitchActivity.class);
                         startActivity(intent);
                     }
                 }

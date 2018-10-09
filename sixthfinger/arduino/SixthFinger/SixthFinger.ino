@@ -13,6 +13,10 @@ char password[30] = {0};
 String ssidStr = "";
 String passwordStr = "";
 
+char server_address[] = "35.189.144.126";
+char server_uri[] = "/sixfinger/sendArduino";
+String lastMessage = "";
+
 /*  WL_NO_SSID_AVAIL = 1 AP 이름 오류
  *  WL_CONNECTED = 3 연결성공 
  *  WL_CONNECT_FAILED = 4 연결실패
@@ -23,8 +27,7 @@ String passwordStr = "";
 ESP8266WebServer server(80); //localhost:80
 Servo sv;
 SoftwareSerial BTSerial(blueTx, blueRx);  
-
-
+WiFiClient client;
 //SSID, PW 설정
 void setWiFiInfo(){
   if(BTSerial.available() > 0){
@@ -70,6 +73,25 @@ void connectToWiFi(){
  }
 }
 
+
+void receiveMessage(){
+  if(client.connect(server_address, 80)){
+    client.println(String("GET ") + server_uri);
+    while(client.available() == 0);
+    if(client.available() > 0){
+      String msg = client.readString();
+      if(msg == "on" && msg != lastMessage){
+        Serial.println("switch " + msg);
+        sv.write(120);
+      }else if(msg == "off" && msg != lastMessage){
+        Serial.println("switch " + msg);
+        sv.write(0);
+      }
+      lastMessage = msg;
+    }  
+  }
+}
+
 void setup(){
   Serial.begin(9600);
   BTSerial.begin(9600);
@@ -78,4 +100,5 @@ void setup(){
 
 void loop(){
   setWiFiInfo();
+  receiveMessage();
 }

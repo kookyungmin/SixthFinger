@@ -51,7 +51,7 @@ public class SwitchActivity extends Activity {
 
     protected void lightSwitch(String state){
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.200.112:8080/")
+                .baseUrl("http://35.189.144.126/")
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
@@ -60,7 +60,7 @@ public class SwitchActivity extends Activity {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
                 if(response.isSuccessful()){
-                    Toast.makeText(SwitchActivity.this, response.body().toString() + " 완료", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SwitchActivity.this, "스위치 " + response.body().toString(), Toast.LENGTH_SHORT).show();
                 }else{
                     Toast.makeText(SwitchActivity.this, "와이파이 접속을 해주세요.", Toast.LENGTH_SHORT).show();
                 }

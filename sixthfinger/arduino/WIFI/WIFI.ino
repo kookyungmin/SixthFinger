@@ -4,25 +4,14 @@
 #include <WiFiClient.h>
 #include <SoftwareSerial.h>
 
-int blueRx = D7;
-int blueTx = D8;
 const char *ssid = "SO070VOIPA3EC";
 const char *password = "8D38AEA3EB";
-ESP8266WebServer server(80); //localhost:80
-SoftwareSerial BTSerial(blueRx,blueTx);
 
-void handleRoot(){
-  String message = "<html><body>\n";
-  if(BTSerial.available() > 0){
-    String data = BTSerial.readString();
-    message += "<p>BlueData=";
-    message += data;
-    message += "</p>";
-  }
-  message += "</body></html>\n";
+char server_address[] = "35.189.144.126";
+char server_uri[] = "/sixfinger/sendArduino";
 
-  server.send(200, "text/html", message);
-}
+
+WiFiClient client;
 
 void connectToWiFi(){
   Serial.print("connecting to ");
@@ -39,16 +28,25 @@ void connectToWiFi(){
   Serial.print(WiFi.localIP());
 }
 
+void receiveMessage(){
+  if(client.connect(server_address, 80)){
+    Serial.println("\nConnected to Server");
+    client.println(String("GET ") + server_uri);
+    while(client.available() == 0);
+    if(client.available() > 0){
+      String str = client.readString();
+      Serial.println(str);
+    }  
+  }else{
+    Serial.println("실패");
+  }
+}
+
 void setup(void) {
   Serial.begin(115200);
-  BTSerial.begin(9600);
-  connectToWiFi();
-  server.on("/", handleRoot); //root handleRoot 실행
-  server.begin();
-  Serial.println("HTTP server started");
-  
+  connectToWiFi();  
 }
 
 void loop(void) {
- server.handleClient();
+ receiveMessage(); 
 }

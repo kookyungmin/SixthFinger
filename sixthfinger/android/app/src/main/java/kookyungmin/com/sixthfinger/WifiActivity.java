@@ -107,10 +107,13 @@ public class WifiActivity extends AppCompatActivity implements  View.OnClickList
                                     handler.post(new Runnable() {
                                         @Override
                                         public void run() {
-                                            if(data.equals("SUCCESS")){
-                                                Toast.makeText(WifiActivity.this, "와이파이가 연결되었습니다.", Toast.LENGTH_SHORT).show();
-                                            }else if(data.equals("FAIL")){
+                                            if(data.equals("FAIL")){
                                                 Toast.makeText(WifiActivity.this, "연결실패! 다시 확인해주세요", Toast.LENGTH_SHORT).show();
+                                            } else{
+                                                Toast.makeText(WifiActivity.this, "와이파이가 연결되었습니다.", Toast.LENGTH_SHORT).show();
+                                                MyApplication app = (MyApplication)getApplication();
+                                                app.setData(data);
+                                                finish();
                                             }
                                         }
                                     });

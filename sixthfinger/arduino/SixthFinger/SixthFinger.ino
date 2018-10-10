@@ -4,6 +4,13 @@
 #include <WiFiClient.h>
 #include <SoftwareSerial.h>
 #include <Servo.h>
+#include <ArduinoJson.h>
+
+#include "DHT.h"
+#define DHTPIN D2
+#define DHTTYPE DHT11
+
+const String productID = "sixfinger1";
 
 int servo = D4;
 int blueRx = D8;
@@ -12,10 +19,19 @@ char ssid[30] = {0};
 char password[30] = {0};
 String ssidStr = "";
 String passwordStr = "";
+/*String jsondata = "";
+int humidity = 0;
+int temperature = 0;
+*/
 
 char server_address[] = "35.189.144.126";
 char server_uri[] = "/sixfinger/sendArduino";
 String lastMessage = "";
+
+/*StaticJsonBuffer<200> jsonBuffer;
+JsonObject& root = jsonBuffer.createObject();
+root["tempvalue"] = temperature;
+root["humivalue"] = humi;*/
 
 /*  WL_NO_SSID_AVAIL = 1 AP 이름 오류
  *  WL_CONNECTED = 3 연결성공 
@@ -23,11 +39,12 @@ String lastMessage = "";
  *  WL_CONNECTION_LOST = 5 연결 끊김
  *  WL_DISCONNECTED = 6 연결안됨
  */
-
-ESP8266WebServer server(80); //localhost:80
+ 
 Servo sv;
 SoftwareSerial BTSerial(blueTx, blueRx);  
 WiFiClient client;
+DHT dht(DHTPIN, DHTTYPE);
+
 //SSID, PW 설정
 void setWiFiInfo(){
   if(BTSerial.available() > 0){
@@ -66,7 +83,11 @@ void connectToWiFi(){
     Serial.println("\nConnected");
     Serial.print("IP address: ");
     Serial.print(WiFi.localIP());
-    BTSerial.write("SUCCESS\n");
+    String str = productID + "\n";
+    char id[30] = {0};
+    str.toCharArray(id, str.length() + 1);
+    BTSerial.write(id);
+    lastMessage = "";
   }else{
     Serial.println("\nFailed");
     BTSerial.write("FAIL\n");
@@ -75,23 +96,48 @@ void connectToWiFi(){
 
 
 void receiveMessage(){
-  if(client.connect(server_address, 80)){
-    client.println(String("GET ") + server_uri);
-    while(client.available() == 0);
-    if(client.available() > 0){
-      String msg = client.readString();
-      if(msg == "on" && msg != lastMessage){
-        Serial.println("switch " + msg);
-        sv.write(120);
-      }else if(msg == "off" && msg != lastMessage){
-        Serial.println("switch " + msg);
-        sv.write(0);
-      }
-      lastMessage = msg;
-    }  
-  }
+    if(client.connect(server_address, 80)){
+      client.println(String("GET ") + server_uri + String("?id=") + productID);
+      while(client.available() == 0);
+      if(client.available() > 0){
+        String msg = client.readString();
+        if(msg == "on" && msg != lastMessage){
+          Serial.println("switch " + msg);
+          sv.write(120);
+        }else if(msg == "off" && msg != lastMessage){
+          Serial.println("switch " + msg);
+          sv.write(0);
+        }
+        lastMessage = msg;
+      }  
+   }
+   if(!client.connected()){
+      client.stop();
+    }
 }
 
+/*void sendTemp(){
+  if(WiFi.status() == WL_DISCONNECTED){
+    if(client.connect(server_address, 80)){
+      client.  
+    }
+    if(!client.connected()){
+      client.stop();
+    }
+  }
+}*/
+/*
+void setTemp(){
+  humidity = dht.readHumidity();
+  temperature = dht.readTemperature();
+  Serial.print("Humidity: ");
+  Serial.print(humidity);
+  Serial.print(" %\t");
+  Serial.print("Temperature: ");
+  Serial.print(temperature);
+  Serial.println(" C");
+}
+*/
 void setup(){
   Serial.begin(9600);
   BTSerial.begin(9600);
@@ -101,4 +147,5 @@ void setup(){
 void loop(){
   setWiFiInfo();
   receiveMessage();
+  /*setTemp();*/
 }

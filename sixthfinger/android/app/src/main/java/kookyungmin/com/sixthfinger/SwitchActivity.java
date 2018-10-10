@@ -18,13 +18,18 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public class SwitchActivity extends Activity {
+    private MyApplication app;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_switch);
+        app = (MyApplication)getApplication();
 
+        Toast.makeText(SwitchActivity.this, app.getData(), Toast.LENGTH_SHORT).show();
         Button lightOn = (Button)findViewById(R.id.lightOn);
         Button lightOff = (Button)findViewById(R.id.lightOff);
 
@@ -56,7 +61,7 @@ public class SwitchActivity extends Activity {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         LightService service = retrofit.create(LightService.class);
-        service.lightSwitch(state).enqueue(new Callback<String>() {
+        service.lightSwitch(state, app.getData()).enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
                 if(response.isSuccessful()){
@@ -75,6 +80,6 @@ public class SwitchActivity extends Activity {
 
     private interface LightService {
         @GET("sixfinger/light/{state}")
-        Call<String> lightSwitch(@Path("state") String state);
+        Call<String> lightSwitch(@Path("state") String state, @Query("id") String id);
     }
 }

@@ -16,7 +16,7 @@ public class InitActivity extends Activity {
 
         Button wifiButton = (Button)findViewById(R.id.wifiButton);
         Button lightButton = (Button)findViewById(R.id.lightButton);
-
+        Button tempButton = (Button)findViewById(R.id.tempButton);
         wifiButton.setOnClickListener(
                 new Button.OnClickListener(){
                     public void onClick(View v){
@@ -30,6 +30,14 @@ public class InitActivity extends Activity {
                 new Button.OnClickListener(){
                     public void onClick(View v){
                         Intent intent = new Intent(v.getContext(), SwitchActivity.class);
+                        startActivity(intent);
+                    }
+                }
+        );
+        tempButton.setOnClickListener(
+                new Button.OnClickListener(){
+                    public void onClick(View v){
+                        Intent intent = new Intent(v.getContext(), TemperatureActivity.class);
                         startActivity(intent);
                     }
                 }

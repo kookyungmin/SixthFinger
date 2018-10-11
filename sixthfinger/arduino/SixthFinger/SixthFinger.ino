@@ -4,12 +4,19 @@
 #include <WiFiClient.h>
 #include <SoftwareSerial.h>
 #include <Servo.h>
-#include <ArduinoJson.h>
+#include <ArduinoJson.h> //5.13.2 버전
 
 #include "DHT.h"
 #define DHTPIN D2
 #define DHTTYPE DHT11
 
+/*  WL_NO_SSID_AVAIL = 1 AP 이름 오류
+ *  WL_CONNECTED = 3 연결성공 
+ *  WL_CONNECT_FAILED = 4 연결실패
+ *  WL_CONNECTION_LOST = 5 연결 끊김
+ *  WL_DISCONNECTED = 6 연결안됨
+ */
+ 
 const String productID = "sixfinger1";
 
 int servo = D4;
@@ -19,27 +26,19 @@ char ssid[30] = {0};
 char password[30] = {0};
 String ssidStr = "";
 String passwordStr = "";
-/*String jsondata = "";
+
+String jsondata = "";
 int humidity = 0;
 int temperature = 0;
-*/
 
 char server_address[] = "35.189.144.126";
-char server_uri[] = "/sixfinger/sendArduino";
+char receiveData_uri[] = "/sixfinger/sendArduino";
+char sendData_uri[] = "/sixfinger/receiveArduino";
 String lastMessage = "";
 
-/*StaticJsonBuffer<200> jsonBuffer;
+StaticJsonBuffer<200> jsonBuffer;
 JsonObject& root = jsonBuffer.createObject();
-root["tempvalue"] = temperature;
-root["humivalue"] = humi;*/
 
-/*  WL_NO_SSID_AVAIL = 1 AP 이름 오류
- *  WL_CONNECTED = 3 연결성공 
- *  WL_CONNECT_FAILED = 4 연결실패
- *  WL_CONNECTION_LOST = 5 연결 끊김
- *  WL_DISCONNECTED = 6 연결안됨
- */
- 
 Servo sv;
 SoftwareSerial BTSerial(blueTx, blueRx);  
 WiFiClient client;
@@ -94,10 +93,10 @@ void connectToWiFi(){
  }
 }
 
-
+//light 상태 서버에게 받음
 void receiveMessage(){
     if(client.connect(server_address, 80)){
-      client.println(String("GET ") + server_uri + String("?id=") + productID);
+      client.println(String("GET ") + receiveData_uri + String("?id=") + productID);
       while(client.available() == 0);
       if(client.available() > 0){
         String msg = client.readString();
@@ -113,39 +112,57 @@ void receiveMessage(){
    }
    if(!client.connected()){
       client.stop();
-    }
+   }
+}
+//온 습도 서버한테 보냄
+void sendTemp(){
+  root["temperature"] = temperature;
+  root["humidity"] = humidity;
+  root.printTo(jsondata);
+  //Serial.println(jsondata);
+  if(client.connect(server_address, 80)){
+    client.print(String("POST ") + sendData_uri + String("?id=") + productID);
+    client.println(" HTTP/1.1");
+    client.println(String("Host:") + server_address);
+    client.println("Content-Type: application/json");
+    client.print("Content-Length: ");
+    client.println(jsondata.length());
+    client.println();
+    client.print(jsondata);
+    client.println();  
+  }
+  if(!client.connected()){
+      client.stop();
+  }
+  Serial.print(String("POST ") + sendData_uri + String("?id=") + productID);
+  Serial.println(" HTTP/1.1");
+  Serial.println(String("Host:") + server_address);
+  Serial.println("Content-Type: application/json");
+  Serial.print("Content-Length: ");
+  Serial.println(jsondata.length());
+  Serial.println();
+  Serial.print(jsondata);
+  Serial.println();
+  jsondata = "";
 }
 
-/*void sendTemp(){
-  if(WiFi.status() == WL_DISCONNECTED){
-    if(client.connect(server_address, 80)){
-      client.  
-    }
-    if(!client.connected()){
-      client.stop();
-    }
-  }
-}*/
-/*
 void setTemp(){
   humidity = dht.readHumidity();
   temperature = dht.readTemperature();
-  Serial.print("Humidity: ");
-  Serial.print(humidity);
-  Serial.print(" %\t");
-  Serial.print("Temperature: ");
-  Serial.print(temperature);
-  Serial.println(" C");
 }
-*/
+
 void setup(){
   Serial.begin(9600);
   BTSerial.begin(9600);
   sv.attach(servo); //서보모터 연결
+  WiFi.disconnect();
 }
 
 void loop(){
   setWiFiInfo();
-  receiveMessage();
-  /*setTemp();*/
+  if(WiFi.status() == WL_CONNECTED){
+    receiveMessage();
+    setTemp();
+    sendTemp();  
+  }
 }

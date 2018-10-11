@@ -29,7 +29,6 @@ public class SwitchActivity extends Activity {
         setContentView(R.layout.activity_switch);
         app = (MyApplication)getApplication();
 
-        Toast.makeText(SwitchActivity.this, app.getData(), Toast.LENGTH_SHORT).show();
         Button lightOn = (Button)findViewById(R.id.lightOn);
         Button lightOff = (Button)findViewById(R.id.lightOff);
 
@@ -40,7 +39,7 @@ public class SwitchActivity extends Activity {
                 new Button.OnClickListener(){
                     public void onClick(View v){
                         Image.setImageResource(R.drawable.light_on);
-                        lightSwitch("on");
+                        setSwitch("on");
                     }
                 }
         );
@@ -48,13 +47,13 @@ public class SwitchActivity extends Activity {
                 new Button.OnClickListener(){
                     public void onClick(View v){
                         Image.setImageResource(R.drawable.light_off);
-                        lightSwitch("off");
+                        setSwitch("off");
                     }
                 }
         );
     }
 
-    protected void lightSwitch(String state){
+    protected void setSwitch(String state){
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://35.189.144.126/")
                 .addConverterFactory(ScalarsConverterFactory.create())
@@ -72,7 +71,7 @@ public class SwitchActivity extends Activity {
             }
             @Override
             public void onFailure(Call<String> call, Throwable t) {
-                Toast.makeText(SwitchActivity.this, t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(SwitchActivity.this, "와이파이 접속을 해주세요.", Toast.LENGTH_SHORT).show();
             }
         });
     }

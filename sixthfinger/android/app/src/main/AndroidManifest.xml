@@ -31,5 +31,7 @@
             android:screenOrientation="portrait"></activity>
         <activity android:name=".SwitchActivity"
             android:screenOrientation="portrait"></activity>
+        <activity android:name=".TemperatureActivity"
+            android:screenOrientation="portrait"></activity>
     </application>
 </manifest>

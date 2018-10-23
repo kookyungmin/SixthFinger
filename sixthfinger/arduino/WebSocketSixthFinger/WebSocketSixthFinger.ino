@@ -1,5 +1,5 @@
-//github.com/morrissinger/ESP8266-Websocket/blob/master/examples/WebSocketClient_Demo/WebSocketClient_Demo.ino
-#include <WebSocketClient.h>
+//github.com/hellerchr/esp8266-websocketclient
+#include "WebSocketClient.h"
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
@@ -31,15 +31,14 @@ String passwordStr = "";
 int humidity = 0;
 int temperature = 0;
 
-char host[] = "192.168.200.112";
-char path[] = "/CommunicationToArduino";
+String host = "192.168.200.117";
+String path = "/CommunicationToArduino";
 String lastMessage = "";
 
 Servo sv;
 SoftwareSerial BTSerial(blueTx, blueRx);
 
-WebSocketClient webSocketClient;
-WiFiClient client;
+WebSocketClient ws(false);
   
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -95,23 +94,15 @@ void connectToWiFi(){
 }
 
 void connectWebSocket(){
-  if (client.connect(host, 8080)) {
-      Serial.println("Connected");
+  ws.connect(host, path , 8080);
+  if (ws.isConnected()) {
+    Serial.println("\nWebSocketConnected!");
+    ws.send("connected,arduino," + productID + ",connect!!");
   } else {
-      Serial.println("Connection failed.");
-  }
-  // Handshake with the server
-  webSocketClient.path = path;
-  webSocketClient.host = host;
-  webSocketClient.protocol = "ws:";
-  if(webSocketClient.handshake(client)) {
-    Serial.println("Handshake successful");
-    String data = "connected,arduino," + productID + ",connected!!";
-    webSocketClient.sendData(data);
-  } else {
-    Serial.println("Handshake failed.");     
+    Serial.println("\nWebSocketFailed");
   }
 }
+
 void setTemp(){
   humidity = dht.readHumidity();
   temperature = dht.readTemperature();
@@ -120,19 +111,28 @@ void setTemp(){
 void setup(){
   Serial.begin(9600);
   BTSerial.begin(9600);
-  sv.attach(servo); //서보모터 연결
   WiFi.disconnect();
 }
 
 void loop(){
   setWiFiInfo();
   if(WiFi.status() == WL_CONNECTED){
-      String data;
-      webSocketClient.getData(data);
-      if (data.length() > 0) {
-        Serial.print("Received data: ");
-        Serial.println(data);
+      String msg;
+      ws.getMessage(msg);
+      if (msg.length() > 0) {
+        Serial.print("\nReceived data: ");
+        Serial.println(msg);
+        if(msg == "on" && msg != lastMessage){
+           sv.attach(servo);
+           sv.write(120);
+           sv.detach();
+           lastMessage = msg;
+        }else if(msg == "off" && msg != lastMessage){
+           sv.attach(servo);
+           sv.write(0);
+           sv.detach();
+           lastMessage = msg;
+        }
       }
   }
 }
-

@@ -35,7 +35,7 @@ public class SwitchActivity extends AppCompatActivity {
     private void connectWebSocket(){
         URI uri;
         try{
-            uri = new URI("ws://192.168.200.112:8080/CommunicationToArduino");
+            uri = new URI("ws://192.168.200.117:8080/CommunicationToArduino");
         }catch(Exception e){
             e.printStackTrace();
             return;
@@ -84,9 +84,9 @@ public class SwitchActivity extends AppCompatActivity {
                 new Button.OnClickListener(){
                     public void onClick(View v){
                         Image.setImageResource(R.drawable.light_on);
-                        if(app.getData() != null) {
+                        try{
                             mWebSocketClient.send("switch,android," + app.getData() + ",on");
-                        }else{
+                        }catch(Exception e){
                             Toast.makeText(SwitchActivity.this, "와이파이 접속을 해주세요.", Toast.LENGTH_SHORT).show();
                         }
                         //setSwitch("on");
@@ -97,9 +97,9 @@ public class SwitchActivity extends AppCompatActivity {
                 new Button.OnClickListener(){
                     public void onClick(View v){
                         Image.setImageResource(R.drawable.light_off);
-                        if(app.getData() != null) {
+                        try {
                             mWebSocketClient.send("switch,android," + app.getData() + ",off");
-                        }else{
+                        }catch(Exception e){
                             Toast.makeText(SwitchActivity.this, "와이파이 접속을 해주세요.", Toast.LENGTH_SHORT).show();
                         }
                         //setSwitch("off");

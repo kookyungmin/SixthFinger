@@ -106,6 +106,7 @@ void connectWebSocket(){
 void setTemp(){
   humidity = dht.readHumidity();
   temperature = dht.readTemperature();
+  Serial.println("\ntemperature: " + String(temperature) + "humidity: " + String(humidity));
 }
 
 void setup(){
@@ -116,7 +117,7 @@ void setup(){
 
 void loop(){
   setWiFiInfo();
-  if(WiFi.status() == WL_CONNECTED){
+  if(ws.isConnected()){
       String msg;
       ws.getMessage(msg);
       if (msg.length() > 0) {
@@ -125,13 +126,18 @@ void loop(){
         if(msg == "on" && msg != lastMessage){
            sv.attach(servo);
            sv.write(120);
+           delay(1000);
            sv.detach();
            lastMessage = msg;
         }else if(msg == "off" && msg != lastMessage){
            sv.attach(servo);
            sv.write(0);
+           delay(1000);
            sv.detach();
            lastMessage = msg;
+        }else if(msg == "requestTemp"){
+          setTemp();
+          ws.send("temperature,arduino," + productID + String(temperature) + "," + String(humidity));
         }
       }
   }

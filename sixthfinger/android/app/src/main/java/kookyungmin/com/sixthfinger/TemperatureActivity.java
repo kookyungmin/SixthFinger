@@ -33,7 +33,7 @@ public class TemperatureActivity extends AppCompatActivity {
     private void connectWebSocket(){
         URI uri;
         try{
-            uri = new URI("ws://35.189.144.126/CommunicationToArduino");
+            uri = new URI("ws://35.189.144.126:8080/CommunicationToArduino");
         }catch(Exception e){
             e.printStackTrace();
             return;

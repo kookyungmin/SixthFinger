@@ -33,7 +33,7 @@ public class TemperatureActivity extends AppCompatActivity {
     private void connectWebSocket(){
         URI uri;
         try{
-            uri = new URI("ws://192.168.200.117:8080/CommunicationToArduino");
+            uri = new URI("ws://35.189.144.126/CommunicationToArduino");
         }catch(Exception e){
             e.printStackTrace();
             return;
@@ -52,9 +52,14 @@ public class TemperatureActivity extends AppCompatActivity {
             @Override
             public void onMessage(String s){
                 Log.i("Websocket", s);
-                String[] temp = s.split(",");
-                tempTxt.setText(temp[0] + "℃");
-                humTxt.setText(temp[1] + "％");
+                final String[] temp = s.split("/");
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        tempTxt.setText(temp[0] + "℃");
+                        humTxt.setText(temp[1] + "％");
+                    }
+                });
             }
             @Override
             public void onClose(int i, String s, boolean b){
@@ -88,7 +93,7 @@ public class TemperatureActivity extends AppCompatActivity {
                 new Button.OnClickListener(){
                     public void onClick(View v){
                         try{
-                            mWebSocketClient.send("temperature,android," + app.getData() + "requestTemp");
+                            mWebSocketClient.send("temperature,android," + app.getData() + ",requestTemp");
                         }catch(Exception e){
                             Toast.makeText(TemperatureActivity.this, "와이파이 접속을 해주세요.", Toast.LENGTH_SHORT).show();
                         }

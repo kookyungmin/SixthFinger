@@ -20,6 +20,7 @@
  
 const String productID = "sixfinger1";
 
+int touchSensor = D3;
 int servo = D4;
 int blueRx = D8;
 int blueTx = D7;
@@ -30,10 +31,12 @@ String passwordStr = "";
 
 int humidity = 0;
 int temperature = 0;
+int state = LOW;
+int touchValue = LOW;
 
 String host = "192.168.200.117";
 String path = "/CommunicationToArduino";
-String lastMessage = "";
+String lastMessage = "off";
 
 Servo sv;
 SoftwareSerial BTSerial(blueTx, blueRx);
@@ -108,14 +111,33 @@ void setTemp(){
   temperature = dht.readTemperature();
   Serial.println("\ntemperature: " + String(temperature) + "humidity: " + String(humidity));
 }
-
+void touch(){
+    int touchValue = digitalRead(touchSensor);
+    if(touchValue == HIGH) {
+        if(lastMessage = "off"){
+          sv.attach(servo);
+          sv.write(120); //120도
+          delay(1500);
+          sv.detach();
+          lastMessage = "on";
+    }else if(lastMessge = "on"){
+          sv.attach(servo);
+          sv.write(0); //120도
+          delay(1500);
+          sv.detach();
+          lastMessage = "off";
+      }  
+   }
+}
 void setup(){
+  pinMode(touchSensor, INPUT);
   Serial.begin(9600);
   BTSerial.begin(9600);
   WiFi.disconnect();
 }
 
 void loop(){
+  touch();
   setWiFiInfo();
   if(ws.isConnected()){
       String msg;
@@ -123,13 +145,13 @@ void loop(){
       if (msg.length() > 0) {
         Serial.print("\nReceived data: ");
         Serial.println(msg);
-        if(msg == "on" && msg != lastMessage){
+        if(msg == "on" && lastMessage = "off"){
            sv.attach(servo);
            sv.write(120);
            delay(1000);
            sv.detach();
            lastMessage = msg;
-        }else if(msg == "off" && msg != lastMessage){
+        }else if(msg == "off" && lastMessage = "on"){
            sv.attach(servo);
            sv.write(0);
            delay(1000);

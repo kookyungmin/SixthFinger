@@ -2,6 +2,7 @@
 #include "WebSocketClient.h"
 
 #include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #include <SoftwareSerial.h>
 #include <Servo.h>
@@ -19,7 +20,6 @@
  
 const String productID = "sixfinger1";
 
-int touchSensor = D3;
 int servo = D4;
 int blueRx = D8;
 int blueTx = D7;
@@ -30,12 +30,10 @@ String passwordStr = "";
 
 int humidity = 0;
 int temperature = 0;
-int state = LOW;
-int touchValue = LOW;
 
 String host = "35.189.144.126";
 String path = "/CommunicationToArduino";
-String lastMessage = "off";
+String lastMessage = "";
 
 Servo sv;
 SoftwareSerial BTSerial(blueTx, blueRx);
@@ -47,6 +45,7 @@ DHT dht(DHTPIN, DHTTYPE);
 //SSID, PW 설정
 void setWiFiInfo(){
   if(BTSerial.available() > 0){
+      ws.disconnect();
       String data = BTSerial.readString();
       int pos = data.indexOf('\n');
       if(pos > 0){
@@ -110,52 +109,8 @@ void setTemp(){
   temperature = dht.readTemperature();
   Serial.println("\ntemperature: " + String(temperature) + " humidity: " + String(humidity));
 }
-void touch(){
-    int touchValue = digitalRead(touchSensor);
-    if(touchValue == HIGH) {
-        Serial.println("touch>>>" + String(touchValue));
-        if(lastMessage == "off"){
-          sv.attach(servo);
-          sv.write(120); //120도
-          delay(1500);
-          sv.detach();
-          lastMessage = "on";
-    }else if(lastMessage == "on"){
-          sv.attach(servo);
-          sv.write(0); //120도
-          delay(1500);
-          sv.detach();
-          lastMessage = "off";
-      }  
-   }
-}
 
-void websocketCommunication(){
-   String msg;
-   ws.getMessage(msg);
-   if (msg.length() > 0) {
-     Serial.print("\nReceived data: ");
-     Serial.println(msg);
-     if(msg == "on" && lastMessage != msg){
-        sv.attach(servo);
-        sv.write(120);
-        delay(1500);
-        sv.detach();
-        lastMessage = msg;
-     }else if(msg == "off" && lastMessage != msg){
-        sv.attach(servo);
-        sv.write(0);
-        delay(1500);
-        sv.detach();
-        lastMessage = msg;
-     }else if(msg == "requestTemp"){
-       setTemp();
-       ws.send("temperature,arduino," + productID + "," + String(temperature) + "/" + String(humidity));
-     }
-   }
-}
 void setup(){
-  pinMode(touchSensor, INPUT);
   Serial.begin(9600);
   BTSerial.begin(9600);
   WiFi.disconnect();
@@ -163,7 +118,29 @@ void setup(){
 }
 
 void loop(){
-  touch();
   setWiFiInfo();
-  websocketCommunication();
+  if(ws.isConnected()){
+      String msg;
+      ws.getMessage(msg);
+      if (msg.length() > 0) {
+        Serial.print("\nReceived data: ");
+        Serial.println(msg);
+        if(msg == "on" && msg != lastMessage){
+           sv.attach(servo);
+           sv.write(120);
+           delay(1000);
+           sv.detach();
+           lastMessage = msg;
+        }else if(msg == "off" && msg != lastMessage){
+           sv.attach(servo);
+           sv.write(0);
+           delay(1000);
+           sv.detach();
+           lastMessage = msg;
+        }else if(msg == "requestTemp"){
+          setTemp();
+          ws.send("temperature,arduino," + productID + "," + String(temperature) + "/" + String(humidity));
+        }
+      }
+  }
 }

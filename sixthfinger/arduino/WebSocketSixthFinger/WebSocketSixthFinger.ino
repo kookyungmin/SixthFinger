@@ -127,14 +127,14 @@ void loop(){
         Serial.println(msg);
         if(msg == "on" && msg != lastMessage){
            sv.attach(servo);
-           sv.write(120);
-           delay(1000);
+           sv.write(0);
+           delay(1500);
            sv.detach();
            lastMessage = msg;
         }else if(msg == "off" && msg != lastMessage){
            sv.attach(servo);
-           sv.write(0);
-           delay(1000);
+           sv.write(90);
+           delay(1500);
            sv.detach();
            lastMessage = msg;
         }else if(msg == "requestTemp"){
